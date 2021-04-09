@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Player/VRController.gd" type="Script" id=1]
+[ext_resource path="res://addons/gui_in_vr/player/controller_ray_cast.gd" type="Script" id=2]
+[ext_resource path="res://Input/VRInputParser.tscn" type="PackedScene" id=4]
+
+[sub_resource type="CubeMesh" id=1]
+size = Vector3( 0.01, 0.01, 16 )
+
+[node name="VRController" type="ARVRController"]
+script = ExtResource( 1 )
+
+[node name="VRInputParser" parent="." instance=ExtResource( 4 )]
+
+[node name="TeleportRayCast" type="RayCast" parent="."]
+visible = false
+enabled = true
+cast_to = Vector3( 0, 0, -16 )
+
+[node name="Mesh" type="MeshInstance" parent="TeleportRayCast"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8 )
+mesh = SubResource( 1 )
+material/0 = null
+
+[node name="RumbleTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="ControllerMesh" type="MeshInstance" parent="."]
+
+[node name="GUISelectRayCast" type="RayCast" parent="."]
+enabled = true
+cast_to = Vector3( 0, 0, -16 )
+script = ExtResource( 2 )
+
+[connection signal="button_pressed" from="." to="VRInputParser" method="_on_VRController_button_pressed"]
+[connection signal="button_release" from="." to="VRInputParser" method="_on_VRController_button_release"]
+[connection signal="controller_initialized" from="VRInputParser" to="." method="_on_VRInputParser_controller_initialized"]
+[connection signal="teleport_pressed" from="VRInputParser" to="." method="_on_VRInputParser_teleport_pressed"]
+[connection signal="teleport_released" from="VRInputParser" to="." method="_on_VRInputParser_teleport_released"]
+[connection signal="timeout" from="RumbleTimer" to="." method="_on_RumbleTimer_timeout"]

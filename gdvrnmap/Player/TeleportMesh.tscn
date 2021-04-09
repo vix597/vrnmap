@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="CylinderMesh" id=1]
+top_radius = 0.2
+bottom_radius = 0.5
+height = 0.2
+
+[sub_resource type="CylinderMesh" id=2]
+top_radius = 0.01
+bottom_radius = 0.1
+height = 0.8
+
+[node name="TeleportMesh" type="MeshInstance"]
+mesh = SubResource( 1 )
+material/0 = null
+
+[node name="TeleportPoint" type="MeshInstance" parent="."]
+mesh = SubResource( 2 )
+material/0 = null

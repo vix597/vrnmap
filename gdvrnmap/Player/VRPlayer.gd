@@ -1,0 +1,2 @@
+extends ARVROrigin
+class_name VRPlayer

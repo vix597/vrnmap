@@ -1,0 +1,6 @@
+python-nmap
+scapy
+websockets
+cincoconfig
+coloredlogs
+colorama
