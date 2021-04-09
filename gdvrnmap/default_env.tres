@@ -1,0 +1,17 @@
+[gd_resource type="Environment" load_steps=3 format=2]
+
+[ext_resource path="res://Art/AllSky_Space_AnotherPlanet Equirect.png" type="Texture" id=1]
+
+[sub_resource type="PanoramaSky" id=1]
+panorama = ExtResource( 1 )
+
+[resource]
+background_mode = 2
+background_sky = SubResource( 1 )
+background_sky_orientation = Basis( 1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926 )
+fog_enabled = true
+ss_reflections_enabled = true
+ssao_quality = 2
+glow_enabled = true
+glow_intensity = 1.0
+glow_bicubic_upscale = true

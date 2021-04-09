@@ -1,0 +1,91 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "OculusTracker",
+"class": "OculusHandTracker",
+"language": "GDScript",
+"path": "res://addons/godot_ovrmobile/example_scenes/oculus_hand_tracker.gd"
+}, {
+"base": "OculusTracker",
+"class": "OculusTouchController",
+"language": "GDScript",
+"path": "res://addons/godot_ovrmobile/example_scenes/oculus_touch_controller.gd"
+}, {
+"base": "ARVRController",
+"class": "OculusTracker",
+"language": "GDScript",
+"path": "res://addons/godot_ovrmobile/example_scenes/oculus_tracker.gd"
+}, {
+"base": "ARVRController",
+"class": "VRController",
+"language": "GDScript",
+"path": "res://Player/VRController.gd"
+}, {
+"base": "ARVROrigin",
+"class": "VRPlayer",
+"language": "GDScript",
+"path": "res://Player/VRPlayer.gd"
+} ]
+_global_script_class_icons={
+"OculusHandTracker": "",
+"OculusTouchController": "",
+"OculusTracker": "",
+"VRController": "",
+"VRPlayer": ""
+}
+
+[application]
+
+config/name="gdvrnmap"
+config/description="VR Nmap!!! This is necessary."
+run/main_scene="res://World/World.tscn"
+boot_splash/image="res://logo.png"
+boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
+config/icon="res://icon.png"
+
+[autoload]
+
+SaveAndLoad="*res://Utils/SaveAndLoad.gd"
+Events="*res://Utils/Events.gd"
+Utils="*res://Utils/Utils.gd"
+PyNmapServiceClient="*res://Utils/PyNmapServiceClient.gd"
+
+[debug]
+
+gdscript/warnings/treat_warnings_as_errors=true
+gdscript/warnings/unused_class_variable=true
+
+[display]
+
+window/size/width=1280
+window/size/height=720
+window/size/test_width=1280
+window/size/test_height=720
+
+[gdnative]
+
+singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib", "res://addons/godot_ovrmobile/godot_ovrmobile.gdnlib" ]
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+
+[physics]
+
+common/physics_fps=90
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+vram_compression/import_etc=true
+vram_compression/import_etc2=false
+environment/default_environment="res://default_env.tres"

@@ -1,0 +1,7 @@
+# Code quality/dev reqs
+pylint
+pycodestyle
+pydocstyle
+mypy
+tox
+wheel
