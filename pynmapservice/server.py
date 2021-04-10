@@ -3,11 +3,13 @@ import json
 import time
 import asyncio
 import logging
+import threading
 
 import websockets
 
 from .config import PyNmapServiceConfig
-from .utils import get_ifaces, discover_hosts
+from .nmaptools import NmapThreadPool
+from .utils import get_ifaces
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,16 +18,17 @@ class PyNmapServerSingleton:
     """Server singleton that creates the websocket."""
 
     _instance = None
+    _lock = threading.Lock()
     _queue: asyncio.Queue = asyncio.Queue()
 
     def __new__(cls):
         """Create or get an instance of the singleton object."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.setup()
+            cls._instance._setup()
         return cls._instance
 
-    def setup(self):
+    def _setup(self):
         """Set up the class instance variables."""
         self._config = PyNmapServiceConfig.get()
         self._server = None
@@ -37,8 +40,9 @@ class PyNmapServerSingleton:
         :param contents: The contents of the message
         :param mtype: The message type
         """
-        msg = {"contents": contents, "type": mtype}
-        self._queue.put_nowait(json.dumps(msg))
+        with self._lock:
+            msg = {"contents": contents, "type": mtype}
+            self._queue.put_nowait(json.dumps(msg))
 
     def _parse_message(self, message: bytes) -> dict:
         """
@@ -55,11 +59,16 @@ class PyNmapServerSingleton:
                 "contents": f"Invalid JSON: {exc}"
             }
 
-    async def producer(self):
+    async def _producer(self):
         """Grab a message that needs to be sent to the client."""
-        return await self._queue.get()
+        while True:
+            try:
+                with self._lock:
+                    return self._queue.get_nowait()
+            except asyncio.QueueEmpty:
+                await asyncio.sleep(0.25)
 
-    async def consumer(self, message):
+    async def _consumer(self, message):
         """Consume a message from the client."""
         LOGGER.debug(f"Message received: {message}")
         obj = self._parse_message(message)
@@ -69,32 +78,30 @@ class PyNmapServerSingleton:
         if mtype == "error":
             LOGGER.error(contents)
         elif mtype == "discover":
-            LOGGER.info(f"Discover hosts in CIDR: {contents}")
-            for host in await discover_hosts(contents):
-                self.send_message(host, "discover")
+            NmapThreadPool.discover_hosts(self, contents)
         else:
             LOGGER.warning(f"Unknown message type {mtype}")
 
-    async def producer_handler(self, websocket, path):
+    async def _producer_handler(self, websocket, path):
         """Produce events for the client."""
         while True:
-            message = await self.producer()
+            message = await self._producer()
             await websocket.send(message)  # Raises connection closed and breaks from loop
 
-    async def consumer_handler(self, websocket, path):
+    async def _consumer_handler(self, websocket, path):
         """Consume messages from the client."""
         async for message in websocket:
-            await self.consumer(message)  # Terminates when the client disconnects
+            await self._consumer(message)  # Terminates when the client disconnects
 
-    async def handler(self, websocket, path):
+    async def _handler(self, websocket, path):
         """Handle client connections."""
         LOGGER.debug(f"Client connected\n\tWebSocket: {websocket}\n\tPath: {path}")
 
         # Send the initial message containing the hosts network info
         self.send_message(get_ifaces(), "ifaces")
 
-        consumer_task = asyncio.ensure_future(self.consumer_handler(websocket, path))
-        producer_task = asyncio.ensure_future(self.producer_handler(websocket, path))
+        consumer_task = asyncio.ensure_future(self._consumer_handler(websocket, path))
+        producer_task = asyncio.ensure_future(self._producer_handler(websocket, path))
         _done, pending = await asyncio.wait(
             [consumer_task, producer_task],
             return_when=asyncio.FIRST_COMPLETED,
@@ -107,7 +114,7 @@ class PyNmapServerSingleton:
     def run(self):
         """Run the server."""
         self._server = websockets.serve(
-            self.handler,
+            self._handler,
             self._config.websocket.host,
             self._config.websocket.port
         )
