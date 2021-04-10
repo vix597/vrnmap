@@ -5,3 +5,4 @@ pydocstyle
 mypy
 tox
 wheel
+flake8

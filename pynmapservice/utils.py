@@ -6,7 +6,6 @@ import logging
 from typing import List, Dict, Tuple
 from logging.handlers import RotatingFileHandler
 
-import nmap
 import coloredlogs
 
 
@@ -62,10 +61,3 @@ def setup_logging(path: str, level: str):
 
     # Colorize stdout logs
     coloredlogs.install(level=level, fmt=fmt)
-
-
-async def discover_hosts(cidr: str) -> List[Tuple[str, str]]:
-    """Use nmap to do a ping sweep on the provided CIDR range."""
-    nm = nmap.PortScanner()
-    nm.scan(hosts=cidr, arguments='-n -sn')
-    return [(x, nm[x]['status']['state']) for x in nm.all_hosts()]
