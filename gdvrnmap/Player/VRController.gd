@@ -8,11 +8,19 @@ var teleport_pos = null
 var teleport_mesh : MeshInstance = null
 var teleport_button_down := false
 var vr_camera : ARVRCamera = null
+var held_object : RigidBody = null
+var held_object_data := {
+    "mode": RigidBody.MODE_RIGID,
+    "layer": 1,
+    "mask": 1
+}
 
 onready var teleportRayCast = $TeleportRayCast
 onready var input = $VRInputParser
 onready var rumbleTimer = $RumbleTimer
 onready var controllerMesh = $ControllerMesh
+onready var grabArea = $GrabArea
+onready var grabPos = $GrabPos
 
 
 func _ready():
@@ -32,6 +40,12 @@ func _physics_process(delta):
         update_teleport_raycast()
 
     update_velocity(delta)
+
+    # Update the held object's position
+    if held_object != null:
+        var held_scale : Vector3 = held_object.scale
+        held_object.global_transform = grabPos.global_transform
+        held_object.scale = held_scale
 
 
 func rumble_for(time : float, intensity : float = 0.5):
@@ -104,3 +118,54 @@ func _on_RumbleTimer_timeout():
 
 func _on_VRInputParser_controller_initialized():
     controllerMesh.mesh = input.load_controller_mesh()
+
+
+func _on_VRInputParser_pause_pressed():
+    # TODO - Trigger pause menu
+    pass
+
+
+func _on_VRInputParser_trigger_pressed():
+    if teleport_button_down:
+        return
+
+    if held_object != null:
+        return  # Holding something already - drop it first
+
+    var bodies : Array = grabArea.get_overlapping_bodies()
+    if len(bodies) == 0:
+        return  # Not colliding
+
+    for body in bodies:
+        if body is RigidBody:
+            held_object = body
+            break
+
+    if held_object == null:
+        return
+
+    # Store the now held RigidBody's information.
+    held_object_data["mode"] = held_object.mode
+    held_object_data["layer"] = held_object.collision_layer
+    held_object_data["mask"] = held_object.collision_mask
+
+    # Set it so it cannot collide with anything.
+    held_object.mode = RigidBody.MODE_STATIC
+    held_object.collision_layer = 0
+    held_object.collision_mask = 0
+
+
+func _on_VRInputParser_trigger_released():
+    if held_object == null:
+        return
+
+    # Set the held object's RigidBody data back to what is stored.
+    held_object.mode = held_object_data["mode"]
+    held_object.collision_layer = held_object_data["layer"]
+    held_object.collision_mask = held_object_data["mask"]
+
+    # Apply a impulse in the direction of the controller's velocity.
+    held_object.apply_impulse(Vector3.ZERO, controller_velocity)
+
+    # Set held_object to null since this controller is no longer holding anything.
+    held_object = null

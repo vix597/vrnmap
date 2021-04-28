@@ -14,12 +14,17 @@ class NmapThreadPoolSingleton:
     _threads: List[threading.Thread] = []
     _lock = threading.Lock()
     _instance = None
+    _exit = False
 
     def __new__(cls):
         """Create or get an instance of the singleton object."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    def __del__(self):
+        """Set exit so the threads can quit early."""
+        self._exit = True
 
     def _run_cmd(self, server, hosts: str, arguments: str, action: str):
         """Run the nmap command in a worker thread."""
@@ -34,6 +39,10 @@ class NmapThreadPoolSingleton:
         for host, result in nm.scan(hosts=hosts, arguments=arguments):
             LOGGER.debug(f"Scan result for {host}: {result}")
             server.send_message({"host": host, "scan_result": result}, action)
+
+            if self._exit:
+                LOGGER.warning("exiting early from nmap scan thread.")
+                break
 
         with self._lock:
             self._threads.remove(threading.current_thread())
