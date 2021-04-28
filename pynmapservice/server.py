@@ -122,7 +122,11 @@ class PyNmapServerSingleton:
         # Start listening
         asyncio.get_event_loop().run_until_complete(self._server)
         LOGGER.info(f"Server listening on {self._config.websocket.host}:{self._config.websocket.port}")
-        asyncio.get_event_loop().run_forever()
+
+        try:
+            asyncio.get_event_loop().run_forever()
+        except KeyboardInterrupt:
+            LOGGER.info("Exit! (cntrl+c caught)")
 
 
 PyNmapServer = PyNmapServerSingleton()

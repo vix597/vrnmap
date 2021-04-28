@@ -1,6 +1,6 @@
 extends Spatial
 
-const TestBlock = preload("res://TestBlock.tscn")
+const ComputerScene = preload("res://Computer.tscn")
 
 var discovery_started := false
 
@@ -26,4 +26,4 @@ func _process(_delta):
 
 func _on_PyNmapServiceClient_host_discovered(_host):
     # warning-ignore:return_value_discarded
-    Utils.instance_scene_on_main(TestBlock, spawn.global_transform)
+    Utils.instance_scene_on_main(ComputerScene, spawn.global_transform)

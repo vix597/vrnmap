@@ -1,0 +1,26 @@
+# Created by Kenney (www.kenney.nl)
+
+newmtl color8
+Kd 0 0 0
+
+newmtl color1
+Kd 0.1960784 0.1960784 0.2784314
+
+newmtl color5
+Kd 0.227451 0.227451 0.3176471
+
+newmtl color2
+Kd 0.6901961 0.6313726 0.6078432
+
+newmtl color7
+Kd 0.3137255 0.6 0.3529412
+
+newmtl color6
+Kd 0.827451 0.7882353 0.7137255
+
+newmtl color3
+Kd 0.7529412 0.6941177 0.654902
+
+newmtl color4
+Kd 0.7882353 0.7215686 0.6627451
+
